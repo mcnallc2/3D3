@@ -4,7 +4,7 @@
 
 // int main()
 // {
-//   std::cerr << "web client is not implemented yet" << std::endl;
+//   cerr << "web client is not implemented yet" << endl;
 //   // do your stuff here! or not if you don't want to.
 // }
 
@@ -20,8 +20,12 @@
 #include <iostream>
 #include <sstream>
 
+#include "HttpRequest.h"
+
+using namespace std;
+
 int
-main()
+main(int argc, char *argv[])
 {
   // create a socket using TCP IP
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -57,39 +61,60 @@ main()
 
   char ipstr[INET_ADDRSTRLEN] = {'\0'};
   inet_ntop(clientAddr.sin_family, &clientAddr.sin_addr, ipstr, sizeof(ipstr));
-  std::cout << "Set up a connection from: " << ipstr << ":" <<
-    ntohs(clientAddr.sin_port) << std::endl;
+  cout << "Set up a connection from: " << ipstr << ":" <<
+    ntohs(clientAddr.sin_port) << endl;
 
 
   // send/receive data to/from connection
   bool isEnd = false;
-  std::string input;
-  char buf[20] = {0};
-  std::stringstream ss;
+  string input;
+  char buf[100] = {0};
+  stringstream ss;
+
+  HttpRequest single_request;
+
+  single_request.setMethod("GET ");
+  single_request.setURI(argv[1]);
+  single_request.setVersion(" HTTP/1.0\n");
+  single_request.setHeader("User-Agent: Ubuntu 7.3.0-27ubuntu1~18.04\nHOST: web-client.cpp\n");
+  single_request.setBody("I'M TRYING MY BEST HERE!!!\n");
+
+  string http_request;
+  http_request = single_request.getMethod() + single_request.getURI() + single_request.getVersion() + single_request.getHeader() + single_request.getBody();
+
+
+  cout << "Requesting URI...";
+
+  if (send(sockfd, http_request.c_str(), http_request.size(), 0) == -1) {
+    perror("send");
+    return 4;
+  }
+ 
 
   while (!isEnd) {
+
+    //clears the buffer by replacing full buffer with null(\0)
     memset(buf, '\0', sizeof(buf));
-
-    std::cout << "send: ";
-    std::cin >> input;
-    if (send(sockfd, input.c_str(), input.size(), 0) == -1) {
-      perror("send");
-      return 4;
-    }
-
 
     if (recv(sockfd, buf, 20, 0) == -1) {
       perror("recv");
       return 5;
     }
-    ss << buf << std::endl;
-    std::cout << "echo: ";
-    std::cout << buf << std::endl;
+    ss << buf << endl;
+    cout << "echo: ";
+    cout << buf << endl;
 
     if (ss.str() == "close\n")
       break;
 
     ss.str("");
+
+    cout << "send: ";
+    cin >> input;
+    if (send(sockfd, input.c_str(), input.size(), 0) == -1) {
+      perror("send");
+      return 4;
+    }
   }
 
   close(sockfd);
