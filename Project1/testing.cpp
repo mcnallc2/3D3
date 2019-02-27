@@ -1,15 +1,19 @@
-#include <string>
-#include <thread>
-#include <iostream>
 
-using namespace std;
+#include "HttpRequest.cpp"
 
 int
-main(int argc, char *argv[])
+main()
 {
-    string input = argv[1];
-    string output = "my name is " + input + "\n";
-    cout << output;
+
+  // string a = "a ";
+  // string b = "b ";
+  // string c = "c ";
+  // string d = "d ";
+  // string e = "e ";
+  HttpRequest first_request;
+  // = new HttpRequest(a,b,c,d,e);
+
+  //"GET ", argv[1], " HTTP/1.0\n", "HOST: web-client.cpp\n", "TRYING MY BEST HERE!!!\n"
 
   return 0;
 }

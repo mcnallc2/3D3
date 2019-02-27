@@ -20,13 +20,22 @@
 #include <iostream>
 #include <sstream>
 
-#include "HttpRequest.h"
+#include "HttpRequest.hpp"
+#include "HttpRequest.cpp"
+#define BUFFER_SIZE 1000
 
 using namespace std;
 
 int
 main(int argc, char *argv[])
 {
+  //creating the object for the http request
+  HttpRequest* first_request = new HttpRequest("GET ", argv[1], " HTTP/1.0\n", "HOST: web-client.cpp\n", "TRYING MY BEST HERE!!!\n");
+
+  string http_request;
+  http_request = first_request->getMethod() + first_request->getURI() + first_request->getVersion() + first_request->getHeader() + first_request->getBody();
+  //cout << http_request << endl;
+
   // create a socket using TCP IP
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -61,60 +70,39 @@ main(int argc, char *argv[])
 
   char ipstr[INET_ADDRSTRLEN] = {'\0'};
   inet_ntop(clientAddr.sin_family, &clientAddr.sin_addr, ipstr, sizeof(ipstr));
-  cout << "Set up a connection from: " << ipstr << ":" <<
-    ntohs(clientAddr.sin_port) << endl;
+  std::cout << "Set up a connection from: " << ipstr << ":" <<
+    ntohs(clientAddr.sin_port) << std::endl;
 
 
   // send/receive data to/from connection
   bool isEnd = false;
-  string input;
-  char buf[100] = {0};
-  stringstream ss;
-
-  HttpRequest single_request;
-
-  single_request.setMethod("GET ");
-  single_request.setURI(argv[1]);
-  single_request.setVersion(" HTTP/1.0\n");
-  single_request.setHeader("User-Agent: Ubuntu 7.3.0-27ubuntu1~18.04\nHOST: web-client.cpp\n");
-  single_request.setBody("I'M TRYING MY BEST HERE!!!\n");
-
-  string http_request;
-  http_request = single_request.getMethod() + single_request.getURI() + single_request.getVersion() + single_request.getHeader() + single_request.getBody();
-
-
-  cout << "Requesting URI...";
-
-  if (send(sockfd, http_request.c_str(), http_request.size(), 0) == -1) {
-    perror("send");
-    return 4;
-  }
- 
+  std::string input;
+  char buf[BUFFER_SIZE] = {0};
+  std::stringstream ss;
 
   while (!isEnd) {
-
-    //clears the buffer by replacing full buffer with null(\0)
     memset(buf, '\0', sizeof(buf));
 
-    if (recv(sockfd, buf, 20, 0) == -1) {
+    //std::cout << "send: ";
+    //std::cin >> input;
+    if (send(sockfd, http_request.c_str(), http_request.size(), 0) == -1) {
+      perror("send");
+      return 4;
+    }
+
+
+    if (recv(sockfd, buf, BUFFER_SIZE, 0) == -1) {
       perror("recv");
       return 5;
     }
-    ss << buf << endl;
-    cout << "echo: ";
-    cout << buf << endl;
+    ss << buf << std::endl;
+    std::cout << "echo: ";
+    std::cout << buf << std::endl;
 
     if (ss.str() == "close\n")
       break;
 
     ss.str("");
-
-    cout << "send: ";
-    cin >> input;
-    if (send(sockfd, input.c_str(), input.size(), 0) == -1) {
-      perror("send");
-      return 4;
-    }
   }
 
   close(sockfd);

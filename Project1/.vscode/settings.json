@@ -33,6 +33,7 @@
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "utility": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "xstring": "cpp"
     }
 }

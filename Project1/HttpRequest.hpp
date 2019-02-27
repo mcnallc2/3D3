@@ -20,12 +20,7 @@ private:
 
 public:
 
-	HttpRequest(string method, string uri, string version, string header, string body);
-	void setMethod(string method);
-	void setURI(string uri);
-	void setVersion(string version);
-	void setHeader(string header);
-	void setBody(string body);
+	HttpRequest(string method, string uri, string version, string header, string body);	
 
 	string getMethod();
 	string getURI();

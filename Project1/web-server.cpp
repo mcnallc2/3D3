@@ -20,6 +20,8 @@
 #include <iostream>
 #include <sstream>
 
+#define BUFFER_SIZE 1000
+
 int
 main()
 {
@@ -68,13 +70,13 @@ main()
 
   // read/write data from/into the connection
   bool isEnd = false;
-  char buf[100] = {0};
+  char buf[BUFFER_SIZE] = {0};
   std::stringstream ss;
 
   while (!isEnd) {
     memset(buf, '\0', sizeof(buf));
 
-    if (recv(clientSockfd, buf, 100, 0) == -1) {
+    if (recv(clientSockfd, buf, BUFFER_SIZE, 0) == -1) {
       perror("recv");
       return 5;
     }
@@ -83,7 +85,7 @@ main()
     std::cout << buf << std::endl;
 
 
-    if (send(clientSockfd, buf, 100, 0) == -1) {
+    if (send(clientSockfd, buf, BUFFER_SIZE, 0) == -1) {
       perror("send");
       return 6;
     }
