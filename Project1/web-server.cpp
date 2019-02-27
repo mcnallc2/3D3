@@ -20,11 +20,19 @@
 #include <iostream>
 #include <sstream>
 
+#include "HttpResponse.hpp"
+#include "HttpResponse.cpp"
+
 #define BUFFER_SIZE 1000
 
+void http_response(int client_socket, char buffer[]);
+string request_parcer(char buffer[]);
+
 int
-main()
+main(int argc, char *argv[])
 {
+  host = argv[1];
+  port_number = argv[2]
   // create a socket using TCP IP
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -73,30 +81,76 @@ main()
   char buf[BUFFER_SIZE] = {0};
   std::stringstream ss;
 
-  while (!isEnd) {
-    memset(buf, '\0', sizeof(buf));
 
-    if (recv(clientSockfd, buf, BUFFER_SIZE, 0) == -1) {
-      perror("recv");
-      return 5;
-    }
-
-    ss << buf << std::endl;
-    std::cout << buf << std::endl;
-
-
-    if (send(clientSockfd, buf, BUFFER_SIZE, 0) == -1) {
-      perror("send");
-      return 6;
-    }
-
-    if (ss.str() == "close\n")
-      break;
-
-    ss.str("");
+  memset(buf, '\0', sizeof(buf));
+  if (recv(clientSockfd, buf, BUFFER_SIZE, 0) == -1) {
+    perror("recv");
+    return 5;
   }
+
+  http_response(clientSockfd, buf);
+
+  //ss << buf << endl;
+  cout << buf << endl;
+  // if (ss.str() == "close\n")
+  // ss.str("");
 
   close(clientSockfd);
 
   return 0;
+}
+
+void http_response(int client_socket, char buffer[]){
+
+  if (send(clientSockfd, request_parcer(buffer), BUFFER_SIZE, 0) == -1) {
+    perror("send");
+    //return 6;
+  }
+}
+
+string request_parcer(char buffer[]){
+
+  char method[A_SIZE];
+  char uri[A_SIZE];
+  char version[A_SIZE];
+  char header[A_SIZE];
+  char body[A_SIZE];
+
+  int status_code;
+  string http_response;
+
+  int i = 0;
+  while(buffer[i] != " "){
+    method[i] = buffer[i];
+    i++;
+  }
+  i++;
+  while(buffer[i] != " "){
+    uri[i] = buffer[i];
+    i++;
+  }
+  i++;
+  while(buffer[i] != "\n"){
+    version[i] = buffer[i];
+    i++;
+  }
+  i++;
+  while(buffer[i] != "\n"){
+    header[i] = buffer[i];
+    i++;
+  }
+  i++;
+  while(buffer[i] != "\n"){
+    body[i] = buffer[i];
+    i++;
+  }
+
+  if(version != "HTTP/1.0"){
+    status_code = 3;
+  }
+  if(url_lookup(uri)){
+    status code = 1;
+  }
+
+  http_response = version +
 }

@@ -26,6 +26,8 @@
 
 using namespace std;
 
+void send_request(int socket, string http_request, char buffer[]);
+
 int
 main(int argc, char *argv[])
 {
@@ -80,33 +82,27 @@ main(int argc, char *argv[])
   char buf[BUFFER_SIZE] = {0};
   std::stringstream ss;
 
-  while (!isEnd) {
-    memset(buf, '\0', sizeof(buf));
-
-    //std::cout << "send: ";
-    //std::cin >> input;
-    if (send(sockfd, http_request.c_str(), http_request.size(), 0) == -1) {
-      perror("send");
-      return 4;
-    }
-
-
-    if (recv(sockfd, buf, BUFFER_SIZE, 0) == -1) {
-      perror("recv");
-      return 5;
-    }
-    ss << buf << std::endl;
-    std::cout << "echo: ";
-    std::cout << buf << std::endl;
-
-    if (ss.str() == "close\n")
-      break;
-
-    ss.str("");
-  }
+  send_request(sockfd, http_request, buf);
 
   close(sockfd);
 
   return 0;
+}
+
+void send_request(int socket, string http_request, char buffer[]){
+
+  if (send(socket, http_request.c_str(), http_request.size(), 0) == -1) {
+    perror("send");
+    //return 4;
+  }
+
+  memset(buffer, '\0', sizeof(buffer));
+  if (recv(socket, buffer, BUFFER_SIZE, 0) == -1) {
+    perror("recv");
+    //return 5;
+  }
+
+  //ss << buffer << endl;
+  cout << buffer << endl;
 }
 
