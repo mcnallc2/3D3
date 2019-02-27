@@ -58,6 +58,7 @@ main()
   std::stringstream ss;
 
   while (!isEnd) {
+
     memset(buf, '\0', sizeof(buf));
 
     std::cout << "send: ";
@@ -66,7 +67,6 @@ main()
       perror("send");
       return 4;
     }
-
 
     if (recv(sockfd, buf, 20, 0) == -1) {
       perror("recv");

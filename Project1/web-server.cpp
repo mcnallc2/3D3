@@ -27,12 +27,22 @@
 
 void http_response(int client_socket, char buffer[]);
 string request_parcer(char buffer[]);
+string uri_parcer(char uri[])
 
 int
 main(int argc, char *argv[])
 {
-  host = argv[1];
-  port_number = argv[2]
+  string host = argv[1];
+  string port_number = argv[2];
+  string directory = argv[3];
+
+  if(host != "localhost"){
+    cout << "host has been changed to 'localhost'\n";
+    host = "localhost";
+  }
+  string ip_address = "127.0.0.1";
+  int port = atoi(port_number.c_str());
+
   // create a socket using TCP IP
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -46,19 +56,19 @@ main(int argc, char *argv[])
   // bind address to socket
   struct sockaddr_in addr;
   addr.sin_family = AF_INET;
-  addr.sin_port = htons(40000);     // short, network byte order
-  addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  addr.sin_port = htons(port);     // short, network byte order
+  addr.sin_addr.s_addr = inet_addr(ip_address);
   memset(addr.sin_zero, '\0', sizeof(addr.sin_zero));
 
   if (bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+    cout << "\nbind error\n";
     perror("bind");
-    return 2;
   }
 
   // set socket to listen status
   if (listen(sockfd, 1) == -1) {
+    cout << "\nlisten error\n";
     perror("listen");
-    return 3;
   }
 
   // accept a new connection
@@ -68,19 +78,16 @@ main(int argc, char *argv[])
 
   if (clientSockfd == -1) {
     perror("accept");
-    return 4;
   }
 
   char ipstr[INET_ADDRSTRLEN] = {'\0'};
   inet_ntop(clientAddr.sin_family, &clientAddr.sin_addr, ipstr, sizeof(ipstr));
-  std::cout << "Accept a connection from: " << ipstr << ":" <<
-    ntohs(clientAddr.sin_port) << std::endl;
+  cout << "Accept a connection from: " << ipstr << ":" << ntohs(clientAddr.sin_port) << endl;
 
   // read/write data from/into the connection
   bool isEnd = false;
   char buf[BUFFER_SIZE] = {0};
-  std::stringstream ss;
-
+  stringstream ss;
 
   memset(buf, '\0', sizeof(buf));
   if (recv(clientSockfd, buf, BUFFER_SIZE, 0) == -1) {
@@ -151,6 +158,11 @@ string request_parcer(char buffer[]){
   if(url_lookup(uri)){
     status code = 1;
   }
+  file = uri_parcer(uri);
 
   http_response = version +
+}
+
+string uri_parcer(char uri[]){
+
 }
