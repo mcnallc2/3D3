@@ -12,18 +12,16 @@ class HttpResponse {
 private:
 
 	string Version;
-	int Status_Code;
-	string Reason;
+	string Status_Code;
 	string Header;
     string HTML;
 
 public:
 
-	HttpResponse(string version, int status, string reason, string header);	
+	HttpResponse(string version, string status, string header);	
 
 	string getVersion();
-	int getStatus();
-	string getReason();
+	string getStatus();
 	string getHeader();
     string getHTML();
 

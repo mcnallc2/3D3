@@ -19,6 +19,8 @@
 
 #include <iostream>
 #include <sstream>
+#include <stdlib.h>
+
 
 #include "HttpResponse.hpp"
 #include "HttpResponse.cpp"
@@ -29,6 +31,7 @@
 void http_response(int client_socket, char* buffer);
 string request_parcer(char buffer[]);
 string uri_parcer(char uri[]);
+void next_field(FILE *f, char *buf, int max);
 
 int
 main(int argc, char *argv[])
@@ -94,9 +97,25 @@ main(int argc, char *argv[])
     perror("recv");
     return 5;
   }
-  cout << "\nRequest recieved ...\n\n" << buf << endl;
+  cout << "\nRequest recieved ...\n\n" << endl;
+  cout << "Looking for file: " << request_parcer(buf);
 
-  request_parcer(buf);
+  string status;
+  // Try to open the input file. If there is a problem, report failure and quit
+  FILE *f;
+	f = fopen(request_parcer(buf).c_str(), "r");
+	if(!f) { 
+		printf("unable to open %s\n", request_parcer(buf).c_str()); 
+		status = "404 Not Found\n";
+    f = fopen("404.html", "r");
+  }
+
+  char* html_text;
+  next_field(f, html_text, BUFFER_SIZE);
+
+  cout << html_text;
+  
+
 
   http_response(clientSockfd, buf);
 
@@ -118,40 +137,87 @@ void http_response(int client_socket, char* buffer){
   }
 }
 
-string request_parcer(char *buffer){
+string request_parcer(char *buffer, string version, string uri){
 
-  char method[A_SIZE];
-  char uri[A_SIZE];
-  char version[A_SIZE];
-  char header[A_SIZE];
-  char body[A_SIZE];
+  string method;
+  string uri;
+  string version;
+  string header;
+  string body;
 
-  string http_response;
+  char temp[A_SIZE];
+  string parce_buffer = buffer;
 
+  memset(temp, '\0', A_SIZE);
   int i = 0;
-  while(buffer[i] != ' '){
-    method[i] = buffer[i];
+  while(parce_buffer[i] != ' '){
+    temp[i] = buffer[i];
     i++;
   }
+  method = temp;
   i++;
-  while(buffer[i] != ' '){
-    uri[i] = buffer[i];
+
+  memset(temp, '\0', A_SIZE);
+  int j=0;
+  while(parce_buffer[i] != ' '){
+    temp[j] = buffer[i];
     i++;
+    j++;
   }
+  uri = temp;
   i++;
+
+  memset(temp, '\0', A_SIZE);
+  j=0;
   while(buffer[i] != '\n'){
-    version[i] = buffer[i];
+    temp[j] = buffer[i];
     i++;
+    j++;
   }
+  version = temp;
   i++;
+
+  memset(temp, '\0', A_SIZE);
+  j=0;
   while(buffer[i] != '\n'){
-    header[i] = buffer[i];
+    temp[j] = buffer[i];
     i++;
+    j++;
   }
+  header = temp;
   i++;
+
+  memset(temp, '\0', A_SIZE);
+  j=0;
   while(buffer[i] != '\n'){
-    body[i] = buffer[i];
+    temp[j] = buffer[i];
     i++;
+    j++;
   }
+  body = temp;
+
   return uri;
+}
+
+void next_field( FILE *f, char *buf, int max ) {
+
+	int i = 0;
+	
+	for(;;) {
+
+		// fetch the next character from file		
+		buf[i] = fgetc(f);
+
+		// end record on newline or end of file
+		if(feof(f) || buf[i]=='\n'){
+			break;
+		} 
+
+		// truncate fields that would overflow the buffer
+		if( i<max-1 ){
+			++i;
+		} 
+	}
+
+	buf[i] = 0; // null terminate the string
 }

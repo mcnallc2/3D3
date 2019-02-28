@@ -1,9 +1,8 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse(string version, int status, string reason, string header){
+HttpResponse::HttpResponse(string version, string status, string header){
     Version = version;
     Status_Code = status;
-    Reason = reason;
     Header = header;
 }
 
@@ -11,12 +10,8 @@ string HttpResponse::getVersion() {
 	return Version;
 }
 
-int HttpResponse::getStatus() {
+string HttpResponse::getStatus() {
 	return Status_Code;
-}
-
-string HttpResponse::getReason() {
-	return Reason;
 }
 
 string HttpResponse::getHeader() {
