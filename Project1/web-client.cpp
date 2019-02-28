@@ -22,65 +22,31 @@
 
 #include "HttpRequest.hpp"
 #include "HttpRequest.cpp"
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 2000
 #define A_SIZE 100
 
 using namespace std;
 
 void send_request(int socket, string http_request, char* buffer);
+void parce_argument(string input_url);
+
+string host, port_number, html, ip_address;
 
 int
 main(int argc, char *argv[])
 {
-  char temp[A_SIZE];
-  string host, port_number, html, ip_address;
-  string input_url = argv[1];
-
-  int i=0;
-  while(input_url[i] != '/'){
-    i++;
-  }
-  i++;
-  i++;
-
-  memset(temp, '\0', A_SIZE);
-  int j=0;
-  while(input_url[i] != ':'){
-    temp[j] = input_url[i];
-    i++;
-    j++;
-  }
-  i++;
-  host = temp;
-
-  memset(temp, '\0', A_SIZE);
-  j=0;
-  while(input_url[i] != '/'){
-    temp[j] = input_url[i];
-    i++;
-    j++;
-  }
-  i++;
-  port_number = temp;
-
-  memset(temp, '\0', A_SIZE);
-  j=0;
-  while(input_url[i] != '\0'){
-    temp[j] = input_url[i];
-    i++;
-    j++;
-  }
-  html = temp;
+  parce_argument(argv[1]);
 
   ip_address = "127.0.0.1";
+  string body = "User-Agent: web-client.cpp (X11; Ubuntu; Linux x86_64; rv:65.0)\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\nAccept-Language: en-US,en;q=0.5\nAccept-Encoding: gzip, deflate\nConnection: keep-alive\nUpgrade-Insecure-Requests: 1\n\n";
 
   int port = atoi(port_number.c_str());
 
   //creating the object for the http request
-  HttpRequest* first_request = new HttpRequest("GET ", html, " HTTP/1.0\n", host, "TRYING MY BEST HERE!!!\n");
+  HttpRequest* first_request = new HttpRequest("GET ", html, " HTTP/1.1\r\n", host, body);
 
   string http_request;
-  http_request = first_request->getMethod() + first_request->getURI() + first_request->getVersion() + "Host: " + first_request->getHeader() + "\n" + first_request->getBody();
+  http_request = first_request->getMethod() + "/" + first_request->getURI() + first_request->getVersion() + "Host: " + first_request->getHeader() + ":" + port + "\n" + first_request->getBody();
   //cout << http_request << endl;
 
   // create a socket using TCP IP
@@ -135,3 +101,43 @@ void send_request(int socket, string http_request, char* buffer){
   cout << buffer << endl;
 }
 
+void parce_argument(string input_url){
+
+  char temp[A_SIZE];
+
+  int i=0;
+  while(input_url[i] != '/'){
+    i++;
+  }
+  i++;
+  i++;
+
+  memset(temp, '\0', A_SIZE);
+  int j=0;
+  while(input_url[i] != ':'){
+    temp[j] = input_url[i];
+    i++;
+    j++;
+  }
+  i++;
+  host = temp;
+
+  memset(temp, '\0', A_SIZE);
+  j=0;
+  while(input_url[i] != '/'){
+    temp[j] = input_url[i];
+    i++;
+    j++;
+  }
+  i++;
+  port_number = temp;
+
+  memset(temp, '\0', A_SIZE);
+  j=0;
+  while(input_url[i] != '\0'){
+    temp[j] = input_url[i];
+    i++;
+    j++;
+  }
+  html = temp;
+}

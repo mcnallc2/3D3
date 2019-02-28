@@ -99,11 +99,13 @@ main(int argc, char *argv[])
     perror("recv");
     return 5;
   }
+  cout << endl << buf << endl;
 
   request_parcer(buf);
 
-  cout << "\nRequest recieved ...\n\n";
-  cout << "Looking for file: " << uri << endl << endl;
+  cout << "Request recieved ...\n\n";
+  cout << "Looking for file: " << uri << endl;
+  cout << "Client is using " << version << endl;
 
   string status;
   // Try to open the input file. If there is a problem, report failure and quit
@@ -114,7 +116,7 @@ main(int argc, char *argv[])
 		status = "404 Not Found";
     f = fopen("404.html", "r");
   }
-  else if(!strcmp(version.c_str(), "HTTP/1.0")){
+  else if(strcmp(version.c_str(), "HTTP/1.1") != 0){
     printf("incorrect version"); 
 		status = "400 Bad Request";
     f = fopen("400.html", "r");
@@ -132,6 +134,7 @@ main(int argc, char *argv[])
   string http_response;
   http_response = first_response->getVersion() + " " + first_response->getStatus() + "\n" + first_response->getHeader() + first_response->getHTML();
 
+  cout << endl << http_response;
   if (send(clientSockfd, http_response.c_str(), BUFFER_SIZE, 0) == -1) {
     perror("send");
     //return 6;
@@ -167,8 +170,8 @@ string request_parcer(char *buffer){
 
   memset(temp, '\0', A_SIZE);
   int i = 0;
-  while(parce_buffer[i] != ' '){
-    temp[i] = buffer[i];
+  while(parce_buffer[i] != '/'){
+    temp[i] = parce_buffer[i];
     i++;
   }
   method = temp;
@@ -177,7 +180,7 @@ string request_parcer(char *buffer){
   memset(temp, '\0', A_SIZE);
   int j=0;
   while(parce_buffer[i] != ' '){
-    temp[j] = buffer[i];
+    temp[j] = parce_buffer[i];
     i++;
     j++;
   }
@@ -186,18 +189,19 @@ string request_parcer(char *buffer){
 
   memset(temp, '\0', A_SIZE);
   j=0;
-  while(buffer[i] != '\n'){
-    temp[j] = buffer[i];
+  while(parce_buffer[i] != '\r'){
+    temp[j] = parce_buffer[i];
     i++;
     j++;
   }
   version = temp;
   i++;
+  i++;
 
   memset(temp, '\0', A_SIZE);
   j=0;
-  while(buffer[i] != '\n'){
-    temp[j] = buffer[i];
+  while(parce_buffer[i] != '\n'){
+    temp[j] = parce_buffer[i];
     i++;
     j++;
   }
@@ -206,8 +210,8 @@ string request_parcer(char *buffer){
 
   memset(temp, '\0', A_SIZE);
   j=0;
-  while(buffer[i] != '\n'){
-    temp[j] = buffer[i];
+  while((parce_buffer[i] != '\n') && (parce_buffer[i+1] != '\n')){
+    temp[j] = parce_buffer[i];
     i++;
     j++;
   }
