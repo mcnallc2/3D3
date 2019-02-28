@@ -22,10 +22,9 @@ public:
 	HttpResponse(string version, int status, string reason, string header);	
 
 	string getVersion();
-	string getStatus();
+	int getStatus();
 	string getReason();
 	string getHeader();
     string getHTML();
-
 
 };

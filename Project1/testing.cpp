@@ -1,16 +1,16 @@
 #include <string>
-#include <thread>
+//#include <thread>
 #include <iostream>
 
 using namespace std;
 
 int
-main()
+main(int argc, char *argv[])
 {
 
-  string str = "12345";
-  int num = atoi(str.c_str());
-  cout << endl << "number is " << num << endl;
+  string str = argv[1];
+  
+  cout << endl << str[1] << endl;
 
   return 0;
 }

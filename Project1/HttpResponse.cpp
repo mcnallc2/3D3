@@ -2,7 +2,7 @@
 
 HttpResponse::HttpResponse(string version, int status, string reason, string header){
     Version = version;
-    Status = status;
+    Status_Code = status;
     Reason = reason;
     Header = header;
 }
@@ -12,7 +12,7 @@ string HttpResponse::getVersion() {
 }
 
 int HttpResponse::getStatus() {
-	return Status;
+	return Status_Code;
 }
 
 string HttpResponse::getReason() {

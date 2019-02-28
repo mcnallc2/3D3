@@ -24,10 +24,11 @@
 #include "HttpResponse.cpp"
 
 #define BUFFER_SIZE 1000
+#define A_SIZE 100
 
-void http_response(int client_socket, char buffer[]);
+void http_response(int client_socket, char* buffer);
 string request_parcer(char buffer[]);
-string uri_parcer(char uri[])
+string uri_parcer(char uri[]);
 
 int
 main(int argc, char *argv[])
@@ -57,7 +58,7 @@ main(int argc, char *argv[])
   struct sockaddr_in addr;
   addr.sin_family = AF_INET;
   addr.sin_port = htons(port);     // short, network byte order
-  addr.sin_addr.s_addr = inet_addr(ip_address);
+  addr.sin_addr.s_addr = inet_addr(ip_address.c_str());
   memset(addr.sin_zero, '\0', sizeof(addr.sin_zero));
 
   if (bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
@@ -84,9 +85,8 @@ main(int argc, char *argv[])
   inet_ntop(clientAddr.sin_family, &clientAddr.sin_addr, ipstr, sizeof(ipstr));
   cout << "Accept a connection from: " << ipstr << ":" << ntohs(clientAddr.sin_port) << endl;
 
-  // read/write data from/into the connection
-  bool isEnd = false;
-  char buf[BUFFER_SIZE] = {0};
+
+  char buf[BUFFER_SIZE];
   stringstream ss;
 
   memset(buf, '\0', sizeof(buf));
@@ -94,11 +94,14 @@ main(int argc, char *argv[])
     perror("recv");
     return 5;
   }
+  cout << "\nRequest recieved ...\n\n" << buf << endl;
+
+  request_parcer(buf);
 
   http_response(clientSockfd, buf);
 
   //ss << buf << endl;
-  cout << buf << endl;
+  //cout << buf << endl;
   // if (ss.str() == "close\n")
   // ss.str("");
 
@@ -107,15 +110,15 @@ main(int argc, char *argv[])
   return 0;
 }
 
-void http_response(int client_socket, char buffer[]){
+void http_response(int client_socket, char* buffer){
 
-  if (send(clientSockfd, request_parcer(buffer), BUFFER_SIZE, 0) == -1) {
+  if (send(client_socket, buffer, BUFFER_SIZE, 0) == -1) {
     perror("send");
     //return 6;
   }
 }
 
-string request_parcer(char buffer[]){
+string request_parcer(char *buffer){
 
   char method[A_SIZE];
   char uri[A_SIZE];
@@ -123,46 +126,32 @@ string request_parcer(char buffer[]){
   char header[A_SIZE];
   char body[A_SIZE];
 
-  int status_code;
   string http_response;
 
   int i = 0;
-  while(buffer[i] != " "){
+  while(buffer[i] != ' '){
     method[i] = buffer[i];
     i++;
   }
   i++;
-  while(buffer[i] != " "){
+  while(buffer[i] != ' '){
     uri[i] = buffer[i];
     i++;
   }
   i++;
-  while(buffer[i] != "\n"){
+  while(buffer[i] != '\n'){
     version[i] = buffer[i];
     i++;
   }
   i++;
-  while(buffer[i] != "\n"){
+  while(buffer[i] != '\n'){
     header[i] = buffer[i];
     i++;
   }
   i++;
-  while(buffer[i] != "\n"){
+  while(buffer[i] != '\n'){
     body[i] = buffer[i];
     i++;
   }
-
-  if(version != "HTTP/1.0"){
-    status_code = 3;
-  }
-  if(url_lookup(uri)){
-    status code = 1;
-  }
-  file = uri_parcer(uri);
-
-  http_response = version +
-}
-
-string uri_parcer(char uri[]){
-
+  return uri;
 }
