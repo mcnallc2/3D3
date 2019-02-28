@@ -19,6 +19,7 @@ using namespace std;
 
 void send_request(int socket, string http_request, char* buffer);
 void parce_argument(string input_url);
+void next_field(FILE *f, char *buf, int max);
 
 string host, port_number, html, ip_address;
 
@@ -78,14 +79,16 @@ void send_request(int socket, string http_request, char* buffer){
 
   if (send(socket, http_request.c_str(), http_request.size(), 0) == -1) {
     perror("send");
-
   }
 
   memset(buffer, '\0', BUFFER_SIZE);
   if (recv(socket, buffer, BUFFER_SIZE, 0) == -1) {
     perror("recv");
-
   }
+
+  FILE *f;
+	f = fopen("recieved.html", "w");
+  next_field(f, buffer, BUFFER_SIZE);
 
   //ss << buffer << endl;
   cout << buffer << endl;
@@ -130,4 +133,26 @@ void parce_argument(string input_url){
     j++;
   }
   html = temp;
+}
+
+void next_field( FILE *f, char *buf, int max) {
+
+	int i = 0;
+	
+	for(;;) {
+
+		// put the next character in the file		
+    fputc(buf[i], f);
+		// end record on newline or end of file
+		if(feof(f)){
+			break;
+		} 
+
+		// truncate fields that would overflow the buffer
+		if( i<max-1 ){
+			++i;
+		} 
+	}
+
+	buf[i] = 0; // null terminate the string
 }
