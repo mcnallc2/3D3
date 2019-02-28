@@ -1,13 +1,3 @@
-// #include <string>
-// #include <thread>
-// #include <iostream>
-
-// int main()
-// {
-//   cerr << "web client is not implemented yet" << endl;
-//   // do your stuff here! or not if you don't want to.
-// }
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -42,12 +32,12 @@ main(int argc, char *argv[])
 
   int port = atoi(port_number.c_str());
 
+  string header = host + ":" + port_number;
   //creating the object for the http request
-  HttpRequest* first_request = new HttpRequest("GET ", html, " HTTP/1.1\r\n", host, body);
+  HttpRequest* first_request = new HttpRequest("GET ", html, " HTTP/1.1\r\n", header, body);
 
   string http_request;
-  http_request = first_request->getMethod() + "/" + first_request->getURI() + first_request->getVersion() + "Host: " + first_request->getHeader() + ":" + port + "\n" + first_request->getBody();
-  //cout << http_request << endl;
+  http_request = first_request->getMethod() + "/" + first_request->getURI() + first_request->getVersion() + "Host: " + first_request->getHeader() + "\n" + first_request->getBody();
 
   // create a socket using TCP IP
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -88,13 +78,13 @@ void send_request(int socket, string http_request, char* buffer){
 
   if (send(socket, http_request.c_str(), http_request.size(), 0) == -1) {
     perror("send");
-    //return 4;
+
   }
 
   memset(buffer, '\0', BUFFER_SIZE);
   if (recv(socket, buffer, BUFFER_SIZE, 0) == -1) {
     perror("recv");
-    //return 5;
+
   }
 
   //ss << buffer << endl;

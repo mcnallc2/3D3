@@ -1,13 +1,3 @@
-// #include <string>
-// #include <thread>
-// #include <iostream>
-
-// int main()
-// {
-//   std::cerr << "web server is not implemented yet" << std::endl;
-//   // do your stuff here! or not if you don't want to.
-// }
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -99,13 +89,12 @@ main(int argc, char *argv[])
     perror("recv");
     return 5;
   }
-  cout << endl << buf << endl;
+  cout << endl << buf;
 
   request_parcer(buf);
 
-  cout << "Request recieved ...\n\n";
-  cout << "Looking for file: " << uri << endl;
-  cout << "Client is using " << version << endl;
+  cout << "Request for (" << uri << ") recieved." << endl;
+  cout << "Client is running with " << version << endl;
 
   string status;
   // Try to open the input file. If there is a problem, report failure and quit
@@ -137,27 +126,14 @@ main(int argc, char *argv[])
   cout << endl << http_response;
   if (send(clientSockfd, http_response.c_str(), BUFFER_SIZE, 0) == -1) {
     perror("send");
-    //return 6;
-  }
-  //http_response(clientSockfd, http_response);
 
-  //ss << buf << endl;
-  //cout << buf << endl;
-  // if (ss.str() == "close\n")
-  // ss.str("");
+  }
 
   close(clientSockfd);
 
   return 0;
 }
 
-void http_response(int client_socket, string response){
-
-  if (send(client_socket, response.c_str(), BUFFER_SIZE, 0) == -1) {
-    perror("send");
-    //return 6;
-  }
-}
 
 string request_parcer(char *buffer){
 
