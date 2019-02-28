@@ -1,9 +1,10 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse(string version, string status, string header){
+HttpResponse::HttpResponse(string version, string status, string header, string html_file){
     Version = version;
     Status_Code = status;
     Header = header;
+	HTML = html_file;
 }
 
 string HttpResponse::getVersion() {
@@ -21,19 +22,3 @@ string HttpResponse::getHeader() {
 string HttpResponse::getHTML() {
 	return HTML;
 }
-
-// void HttpResponse::setMethod(string method){
-// 	Method = method;
-// }
-// void HttpResponse::setURI(string uri){
-// 	URI = uri;
-// }
-// void HttpResponse::setVersion(string version){
-// 	Version = version;
-// }
-// void HttpResponse::setHeader(string header){
-// 	Header = header;
-// }
-// void HttpResponse::setBody(string body){
-// 	Body = body;
-// }

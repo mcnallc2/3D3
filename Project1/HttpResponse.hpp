@@ -18,7 +18,7 @@ private:
 
 public:
 
-	HttpResponse(string version, string status, string header);	
+	HttpResponse(string version, string status, string header, string html_file);	
 
 	string getVersion();
 	string getStatus();

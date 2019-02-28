@@ -42,7 +42,6 @@ main(int argc, char *argv[])
   }
   i++;
   i++;
-  cout << "\nparce_1\n";
 
   memset(temp, '\0', A_SIZE);
   int j=0;
@@ -53,7 +52,6 @@ main(int argc, char *argv[])
   }
   i++;
   host = temp;
-  cout << endl << host << "\nparce_2\n";
 
   memset(temp, '\0', A_SIZE);
   j=0;
@@ -64,7 +62,6 @@ main(int argc, char *argv[])
   }
   i++;
   port_number = temp;
-  cout << endl << port_number << "\nparce_3\n";
 
   memset(temp, '\0', A_SIZE);
   j=0;
@@ -74,7 +71,6 @@ main(int argc, char *argv[])
     j++;
   }
   html = temp;
-  cout << endl << html << "\nparce_4\n";
 
   ip_address = "127.0.0.1";
 
@@ -109,7 +105,7 @@ main(int argc, char *argv[])
 
   char ipstr[INET_ADDRSTRLEN] = {'\0'};
   inet_ntop(clientAddr.sin_family, &clientAddr.sin_addr, ipstr, sizeof(ipstr));
-  std::cout << "Set up a connection from: " << ipstr << ":" << ntohs(clientAddr.sin_port) << std::endl;
+  std::cout << "Set up a connection from: " << ipstr << ":" << ntohs(clientAddr.sin_port) << endl << endl;
 
   std::string input;
   char buf[BUFFER_SIZE] = {0};

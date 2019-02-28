@@ -25,13 +25,15 @@
 #include "HttpResponse.hpp"
 #include "HttpResponse.cpp"
 
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 2000
 #define A_SIZE 100
 
-void http_response(int client_socket, char* buffer);
+void http_response(int client_socket, string response);
 string request_parcer(char buffer[]);
 string uri_parcer(char uri[]);
 void next_field(FILE *f, char *buf, int max);
+
+string uri, version;
 
 int
 main(int argc, char *argv[])
@@ -86,7 +88,7 @@ main(int argc, char *argv[])
 
   char ipstr[INET_ADDRSTRLEN] = {'\0'};
   inet_ntop(clientAddr.sin_family, &clientAddr.sin_addr, ipstr, sizeof(ipstr));
-  cout << "Accept a connection from: " << ipstr << ":" << ntohs(clientAddr.sin_port) << endl;
+  cout << endl << "Accept a connection from: " << ipstr << ":" << ntohs(clientAddr.sin_port) << endl;
 
 
   char buf[BUFFER_SIZE];
@@ -97,27 +99,44 @@ main(int argc, char *argv[])
     perror("recv");
     return 5;
   }
-  cout << "\nRequest recieved ...\n\n" << endl;
-  cout << "Looking for file: " << request_parcer(buf);
+
+  request_parcer(buf);
+
+  cout << "\nRequest recieved ...\n\n";
+  cout << "Looking for file: " << uri << endl << endl;
 
   string status;
   // Try to open the input file. If there is a problem, report failure and quit
   FILE *f;
-	f = fopen(request_parcer(buf).c_str(), "r");
+	f = fopen(uri.c_str(), "r");
 	if(!f) { 
-		printf("unable to open %s\n", request_parcer(buf).c_str()); 
-		status = "404 Not Found\n";
+		printf("unable to find %s\n", uri.c_str()); 
+		status = "404 Not Found";
     f = fopen("404.html", "r");
   }
+  else if(!strcmp(version.c_str(), "HTTP/1.0")){
+    printf("incorrect version"); 
+		status = "400 Bad Request";
+    f = fopen("400.html", "r");
+  }
+  else{
+    status = "200 OK";
+  }
 
-  char* html_text;
+
+  char html_text[BUFFER_SIZE];
   next_field(f, html_text, BUFFER_SIZE);
 
-  cout << html_text;
+  HttpResponse* first_response = new HttpResponse(version, status, "Date: 28th Feb 2019\nServer: web-server.cpp\n\n", html_text);	
   
+  string http_response;
+  http_response = first_response->getVersion() + " " + first_response->getStatus() + "\n" + first_response->getHeader() + first_response->getHTML();
 
-
-  http_response(clientSockfd, buf);
+  if (send(clientSockfd, http_response.c_str(), BUFFER_SIZE, 0) == -1) {
+    perror("send");
+    //return 6;
+  }
+  //http_response(clientSockfd, http_response);
 
   //ss << buf << endl;
   //cout << buf << endl;
@@ -129,19 +148,17 @@ main(int argc, char *argv[])
   return 0;
 }
 
-void http_response(int client_socket, char* buffer){
+void http_response(int client_socket, string response){
 
-  if (send(client_socket, buffer, BUFFER_SIZE, 0) == -1) {
+  if (send(client_socket, response.c_str(), BUFFER_SIZE, 0) == -1) {
     perror("send");
     //return 6;
   }
 }
 
-string request_parcer(char *buffer, string version, string uri){
+string request_parcer(char *buffer){
 
   string method;
-  string uri;
-  string version;
   string header;
   string body;
 
@@ -209,7 +226,7 @@ void next_field( FILE *f, char *buf, int max ) {
 		buf[i] = fgetc(f);
 
 		// end record on newline or end of file
-		if(feof(f) || buf[i]=='\n'){
+		if(feof(f)){
 			break;
 		} 
 
