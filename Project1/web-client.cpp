@@ -19,7 +19,8 @@ using namespace std;
 
 void send_request(int socket, string http_request, char* buffer);
 void parce_argument(string input_url);
-void next_field(FILE *f, char *buf, int max);
+void next_field(FILE *f, string buf, int max);
+string parce_response(string response);
 
 string host, port_number, html, ip_address;
 
@@ -86,12 +87,14 @@ void send_request(int socket, string http_request, char* buffer){
     perror("recv");
   }
 
-  FILE *f;
-	f = fopen("recieved.html", "w");
-  next_field(f, buffer, BUFFER_SIZE);
+  string html_file_code;
+  html_file_code = parce_response(buffer);
+  cout << endl << html_file_code << endl;
 
-  //ss << buffer << endl;
-  cout << buffer << endl;
+  // FILE *f;
+	// f = fopen("recieved.html", "w");
+  //next_field(f, parce_response(buffer), BUFFER_SIZE);
+
 }
 
 void parce_argument(string input_url){
@@ -135,7 +138,7 @@ void parce_argument(string input_url){
   html = temp;
 }
 
-void next_field( FILE *f, char *buf, int max) {
+void next_field( FILE *f, string buf, int max) {
 
 	int i = 0;
 	
@@ -144,7 +147,7 @@ void next_field( FILE *f, char *buf, int max) {
 		// put the next character in the file		
     fputc(buf[i], f);
 		// end record on newline or end of file
-		if(feof(f)){
+		if(buf[i] == '\n' && buf[i+1] == '\n'){
 			break;
 		} 
 
@@ -155,4 +158,28 @@ void next_field( FILE *f, char *buf, int max) {
 	}
 
 	buf[i] = 0; // null terminate the string
+}
+
+string parce_response(string response){
+
+  char temp[A_SIZE];
+  string recieved_html;
+
+  int i=0;
+  while(response[i] != '<'){
+    i++;
+  }
+
+
+  memset(temp, '\0', A_SIZE);
+  int j=0;
+  while((response[i] != '\n') && (response[i+1] != '\n')){
+    temp[j] = response[i];
+    i++;
+    j++;
+  }
+  temp[j] = response[i];
+
+  recieved_html = temp;
+  return recieved_html;
 }

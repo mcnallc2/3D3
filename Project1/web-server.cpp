@@ -121,7 +121,7 @@ main(int argc, char *argv[])
   HttpResponse* first_response = new HttpResponse(version, status, "Date: 28th Feb 2019\nServer: web-server.cpp\n\n", html_text);	
   
   string http_response;
-  http_response = first_response->getVersion() + " " + first_response->getStatus() + "\n" + first_response->getHeader() + first_response->getHTML();
+  http_response = first_response->getVersion() + " " + first_response->getStatus() + "\n" + first_response->getHeader() + first_response->getHTML() + "\n\n";
 
   cout << endl << http_response;
   if (send(clientSockfd, http_response.c_str(), BUFFER_SIZE, 0) == -1) {
