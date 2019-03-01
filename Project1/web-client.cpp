@@ -19,56 +19,68 @@ using namespace std;
 
 void send_request(int socket, string http_request, char* buffer);
 void parce_argument(string input_url);
-void next_field(FILE *f, string buf, int max);
-string parce_response(string response);
+void next_field(FILE *f, char* buf, int max);
+void parce_response(string response);
 
 string host, port_number, html, ip_address;
+char received_html[BUFFER_SIZE];
 
 int
 main(int argc, char *argv[])
 {
+  //parcing url
   parce_argument(argv[1]);
 
   ip_address = "127.0.0.1";
   string body = "User-Agent: web-client.cpp (X11; Ubuntu; Linux x86_64; rv:65.0)\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\nAccept-Language: en-US,en;q=0.5\nAccept-Encoding: gzip, deflate\nConnection: keep-alive\nUpgrade-Insecure-Requests: 1\n\n";
 
+  //converting port number to int and setting header
   int port = atoi(port_number.c_str());
-
   string header = host + ":" + port_number;
-  //creating the object for the http request
-  HttpRequest* first_request = new HttpRequest("GET ", html, " HTTP/1.1\r\n", header, body);
-
-  string http_request;
-  http_request = first_request->getMethod() + "/" + first_request->getURI() + first_request->getVersion() + "Host: " + first_request->getHeader() + "\n" + first_request->getBody();
 
   // create a socket using TCP IP
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
+  //struct for socket attributes
   struct sockaddr_in serverAddr;
+  //specifies ip version (ipv4)
   serverAddr.sin_family = AF_INET;
-  serverAddr.sin_port = htons(port);     // short, network byte order
+  //converting port from host to network form (short)
+  serverAddr.sin_port = htons(port);
+  //combines the internet ip and host ip
   serverAddr.sin_addr.s_addr = inet_addr(ip_address.c_str());
+  //sets the ip address char version to NULL
   memset(serverAddr.sin_zero, '\0', sizeof(serverAddr.sin_zero));
 
-  // connect to the server
-  if (connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
+  //connecting to the server to the server using given port
+  if(connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1){
     perror("connect");
   }
 
+  //struct for client socket
   struct sockaddr_in clientAddr;
+  //attribute for length of socket
   socklen_t clientAddrLen = sizeof(clientAddr);
-  if (getsockname(sockfd, (struct sockaddr *)&clientAddr, &clientAddrLen) == -1) {
+  //stores the local host address and length
+  if(getsockname(sockfd, (struct sockaddr *)&clientAddr, &clientAddrLen) == -1) {
     perror("getsockname");
   }
 
-  char ipstr[INET_ADDRSTRLEN] = {'\0'};
-  inet_ntop(clientAddr.sin_family, &clientAddr.sin_addr, ipstr, sizeof(ipstr));
-  std::cout << "Set up a connection from: " << ipstr << ":" << ntohs(clientAddr.sin_port) << endl << endl;
+  //displaying the ip address and network to host short verion of port number
+  cout << "\nSet up a connection from: " << ip_address << ": " << ntohs(clientAddr.sin_port) << endl << endl;
 
-  std::string input;
+  //creating the object for the http request
+  HttpRequest* first_request = new HttpRequest("GET ", html, " HTTP/1.1\r\n", header, body);
+
+  string http_request;
+  //using the object construct the http request
+  http_request = first_request->getMethod() + "/" + first_request->getURI() + first_request->getVersion() + "Host: " + first_request->getHeader() + "\n" + first_request->getBody();
+  delete first_request;
+
+
   char buf[BUFFER_SIZE] = {0};
-  std::stringstream ss;
-
+  //function to send the request
+  cout << "Sending Request...\n\n";
   send_request(sockfd, http_request, buf);
 
   close(sockfd);
@@ -78,25 +90,28 @@ main(int argc, char *argv[])
 
 void send_request(int socket, string http_request, char* buffer){
 
-  if (send(socket, http_request.c_str(), http_request.size(), 0) == -1) {
+  //sending the http_request
+  if(send(socket, http_request.c_str(), http_request.size(), 0) == -1){
     perror("send");
   }
 
+  //setting buffer and recieving the response from server
   memset(buffer, '\0', BUFFER_SIZE);
-  if (recv(socket, buffer, BUFFER_SIZE, 0) == -1) {
+  if(recv(socket, buffer, BUFFER_SIZE, 0) == -1){
     perror("recv");
   }
 
-  string html_file_code;
-  html_file_code = parce_response(buffer);
-  cout << endl << html_file_code << endl;
+  //parcing the http response
+  parce_response(buffer);
 
-  // FILE *f;
-	// f = fopen("recieved.html", "w");
-  //next_field(f, parce_response(buffer), BUFFER_SIZE);
+  //opening new file and writing in the response from the server
+  FILE *f;
+	f = fopen("recieved.html", "w");
+  next_field(f, received_html, BUFFER_SIZE);
 
 }
 
+//function to parse the input argument
 void parce_argument(string input_url){
 
   char temp[A_SIZE];
@@ -138,48 +153,41 @@ void parce_argument(string input_url){
   html = temp;
 }
 
-void next_field( FILE *f, string buf, int max) {
+//function to write string to file
+void next_field( FILE *f, char* buf, int max) {
 
 	int i = 0;
 	
 	for(;;) {
-
-		// put the next character in the file		
+   // short, network byte order
+		//put the next character in the file		
     fputc(buf[i], f);
-		// end record on newline or end of file
+		//end when reached 2 endlines
 		if(buf[i] == '\n' && buf[i+1] == '\n'){
 			break;
 		} 
-
-		// truncate fields that would overflow the buffer
+		//truncate fields that would overflow the buffer
 		if( i<max-1 ){
 			++i;
 		} 
 	}
-
 	buf[i] = 0; // null terminate the string
 }
 
-string parce_response(string response){
+//function to parce the response fro mthe server
+void parce_response(string response){
 
-  char temp[A_SIZE];
-  string recieved_html;
-
+  //skipping status and header
   int i=0;
   while(response[i] != '<'){
     i++;
   }
 
-
-  memset(temp, '\0', A_SIZE);
+  //obtaining string of html code
   int j=0;
-  while((response[i] != '\n') && (response[i+1] != '\n')){
-    temp[j] = response[i];
+  while(response[i] != '\0'){
+    received_html[j] = response[i];
     i++;
     j++;
   }
-  temp[j] = response[i];
-
-  recieved_html = temp;
-  return recieved_html;
 }
