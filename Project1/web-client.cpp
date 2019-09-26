@@ -24,12 +24,18 @@ void parce_response(string response);
 
 string host, port_number, html, ip_address;
 char received_html[BUFFER_SIZE];
+int next_arg;
+string argument;
 
 int
 main(int argc, char *argv[])
 {
+
+  next_arg = 1;
+  argument = "|";
+
   //parcing url
-  parce_argument(argv[1]);
+  parce_argument(argv[next_arg]);
 
   ip_address = "127.0.0.1";
   string body = "User-Agent: web-client.cpp (X11; Ubuntu; Linux x86_64; rv:65.0)\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\nAccept-Language: en-US,en;q=0.5\nAccept-Encoding: gzip, deflate\nConnection: keep-alive\nUpgrade-Insecure-Requests: 1\n\n";
@@ -66,22 +72,39 @@ main(int argc, char *argv[])
     perror("getsockname");
   }
 
+  string http_request;
+  char buf[BUFFER_SIZE] = {0};
+
+  //while(next_arg < argc){
+
+    
+  parce_argument(argv[next_arg]);
+  port = atoi(port_number.c_str());
+  header = host + ":" + port_number;
   //displaying the ip address and network to host short verion of port number
   cout << "\nSet up a connection from: " << ip_address << ": " << ntohs(clientAddr.sin_port) << endl << endl;
 
   //creating the object for the http request
   HttpRequest* first_request = new HttpRequest("GET ", html, " HTTP/1.1\r\n", header, body);
 
-  string http_request;
   //using the object construct the http request
   http_request = first_request->getMethod() + "/" + first_request->getURI() + first_request->getVersion() + "Host: " + first_request->getHeader() + "\n" + first_request->getBody();
   delete first_request;
 
-
-  char buf[BUFFER_SIZE] = {0};
   //function to send the request
   cout << "Sending Request...\n\n";
   send_request(sockfd, http_request, buf);
+
+  next_arg++;
+  //argument = argument + "|";
+
+
+  //}
+  //sending the http_request
+
+  // http_request = "finish";
+  // send_request(sockfd, http_request, buf);
+
 
   close(sockfd);
 
@@ -90,6 +113,8 @@ main(int argc, char *argv[])
 
 void send_request(int socket, string http_request, char* buffer){
 
+  int flag = 0;
+  string file_name;
   //sending the http_request
   if(send(socket, http_request.c_str(), http_request.size(), 0) == -1){
     perror("send");
@@ -100,14 +125,25 @@ void send_request(int socket, string http_request, char* buffer){
   if(recv(socket, buffer, BUFFER_SIZE, 0) == -1){
     perror("recv");
   }
+  cout << endl << buffer << endl;
 
-  //parcing the http response
-  parce_response(buffer);
+  if(strcmp(buffer, "finish") == 0){
+    cout << endl << "server closing" << endl;
+    flag = 1;
+  }
 
-  //opening new file and writing in the response from the server
-  FILE *f;
-	f = fopen("recieved.html", "w");
-  next_field(f, received_html, BUFFER_SIZE);
+  if(flag == 0){
+    //parcing the http response
+    parce_response(buffer);
+
+    //opening new file and writing in the response from the server
+    FILE *f;
+    //file_name = "recieved" + argument + ".html";
+    f = fopen("recieved.html", "w");
+    //cout << received_html;
+    next_field(f, received_html, BUFFER_SIZE);
+  }
+
 
 }
 

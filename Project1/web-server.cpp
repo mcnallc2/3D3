@@ -67,18 +67,32 @@ main(int argc, char *argv[])
     perror("bind");
   }
 
+  char buf[BUFFER_SIZE];
+  string status;
+  FILE *f;
+  char html_text[BUFFER_SIZE];
+  string http_response;
+  int clientSockfd;
+  //accept a new connection from client
+  struct sockaddr_in clientAddr;
+  //fetching clent address size
+  socklen_t clientAddrSize = sizeof(clientAddr);
+
+
+  //while(true){
+
+
   //set socket to listen status
   if(listen(sockfd, 1) == -1) {
     cout << "\nlisten error\n";
     perror("listen");
   }
 
-  //accept a new connection from client
-  struct sockaddr_in clientAddr;
-  //fetching clent address size
-  socklen_t clientAddrSize = sizeof(clientAddr);
+  //used to thread the incoming requests
+  //fork();
+
   //await a connection from client and setting the socket descriptor name and size to that of client
-  int clientSockfd = accept(sockfd, (struct sockaddr*)&clientAddr, &clientAddrSize);
+  clientSockfd = accept(sockfd, (struct sockaddr*)&clientAddr, &clientAddrSize);
 
   //if desriptor is -1 there is and error opening the connection
   if (clientSockfd == -1) {
@@ -88,13 +102,17 @@ main(int argc, char *argv[])
   //displaying ip address and network to host (short) version of port (non-binary version)
   cout << endl << "Accept a connection from: " << ip_address << ": " << ntohs(clientAddr.sin_port) << endl;
 
-
-  char buf[BUFFER_SIZE];
   memset(buf, '\0', sizeof(buf));
   //receiving request from client and storing in buffer
   if (recv(clientSockfd, buf, BUFFER_SIZE, 0) == -1) {
     perror("recv");
   }
+  cout << endl << buf << endl;
+
+  //if there are no more requests
+  // if(strcmp(buf, "finish") == 0){
+  //   break;
+  // }
 
   //function to parce request from client
   request_parcer(buf);
@@ -103,19 +121,17 @@ main(int argc, char *argv[])
   cout << "Client is running with " << version << endl;
 
   //trying to open file request from the client
-  string status;
-  FILE *f;
-	f = fopen(uri.c_str(), "r");
+  f = fopen(uri.c_str(), "r");
   //if the file is not found
-	if(!f) { 
-		printf("unable to find %s\n", uri.c_str()); 
-		status = "404 Not Found";
+  if(!f) { 
+    printf("unable to find %s\n", uri.c_str()); 
+    status = "404 Not Found";
     f = fopen("404.html", "r");
   }
   //if the http version is incorrect
   else if(strcmp(version.c_str(), "HTTP/1.1") != 0){
     printf("incorrect version"); 
-		status = "400 Bad Request";
+    status = "400 Bad Request";
     f = fopen("400.html", "r");
   }
   //else file is found
@@ -124,14 +140,12 @@ main(int argc, char *argv[])
   }
 
   //function to read html code from fequested file
-  char html_text[BUFFER_SIZE];
   next_field(f, html_text, BUFFER_SIZE);
 
   //creating object for the request
   HttpResponse* first_response = new HttpResponse(version, status, "Date: 28th Feb 2019\nServer: web-server.cpp\n\n", html_text);	
   
   //using the object to construct a response to the client
-  string http_response;
   http_response = first_response->getVersion() + " " + first_response->getStatus() + "\n" + first_response->getHeader() + first_response->getHTML() + "\n\n";
   delete first_response;
 
@@ -140,6 +154,12 @@ main(int argc, char *argv[])
   if (send(clientSockfd, http_response.c_str(), BUFFER_SIZE, 0) == -1) {
     perror("send");
   }
+
+  // }
+  // http_response = "finish";
+  // if (send(clientSockfd, http_response.c_str(), BUFFER_SIZE, 0) == -1) {
+  //   perror("send");
+  // }
 
   close(clientSockfd);
 
